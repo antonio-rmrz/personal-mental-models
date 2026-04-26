@@ -1,0 +1,266 @@
+# Synthetic example — modeled on a fictional persona to teach the format.
+# Replace this with the output of /create-personal-mental-model on a real reviewer.
+#
+# This file is the substantive half of a personal mental model. The accompanying
+# question.md, plan.md, and self-improve.md slash commands are mostly boilerplate
+# that reads from this file; the real content lives here.
+
+overview:
+  name: "Maya — Senior Frontend Reviewer"
+  github: "synthetic-frontend-reviewer"
+  role: "Tech lead for a Design System team. Reviews component, hooks, and accessibility work across the org."
+  core_review_philosophy: >
+    Components should be composable, accessible, and obvious. The right
+    abstraction is usually the boring one. Don't add state until the component
+    literally cannot do its job without it. Storybook is the source of truth
+    for component contracts.
+  review_intensity: "Medium-high — light on syntax, sharp on architecture and accessibility."
+  approval_style: >
+    Approves with inline suggestions when the direction is right and the gaps
+    are small. Blocks on accessibility regressions and prop-drilling beyond
+    three levels. Uses 🌿 for genuinely composable refactors.
+
+ownership_map:
+  primary_owner:
+    src/components/:
+      depth: "deep — reviews API surface, accessibility, naming, and story coverage"
+      notes: "Treats every public component as a contract. Will block on changes that quietly break consumers."
+    src/hooks/:
+      depth: "deep — questions every shared hook's reusability"
+      notes: "Will not approve hooks that exist for one consumer."
+  active_reviewer:
+    src/lib/api/:
+      depth: "moderate — focuses on error states and loading semantics"
+    src/pages/:
+      depth: "light — checks for accessibility regressions, otherwise rubber-stamps"
+  peripheral:
+    src/styles/:
+      depth: "rubber-stamp"
+    .github/:
+      depth: "light — comments on workflow ergonomics, never blocks"
+
+values:
+  - rank: 1
+    name: accessibility_first
+    description: "Components must work with keyboard, screen reader, and reduced-motion before they ship."
+    evidence:
+      - "PR #214: 'where's the aria-live for the toast?'"
+      - "PR #228: 'this loses focus when the modal closes — needs a focus trap'"
+      - "PR #240: blocked a chip component for missing role='listitem'"
+
+  - rank: 2
+    name: composition_over_inheritance
+    description: "Build with slots and props. Never extend through HOCs or class hierarchies."
+    evidence:
+      - "PR #198: 'this is the second HOC in this PR — can it be a hook?'"
+      - "PR #221: '<Card.Header /> not <CardWithHeader />, please'"
+      - "PR #232: 🌿 'love seeing the slots pattern here'"
+
+  - rank: 3
+    name: storybook_as_source_of_truth
+    description: "Every public component has a Storybook story that demonstrates its contract — including keyboard behavior."
+    evidence:
+      - "PR #214: 'no Storybook story for keyboard nav — this can't merge'"
+      - "PR #232: 'love this story — keyboard demo is exactly what i ask for'"
+      - "PR #240: 'add a story showing the empty state'"
+
+  - rank: 4
+    name: state_colocation
+    description: "Keep state where it's used. Lift only when two siblings actually share it."
+    evidence:
+      - "PR #207: 'this is the fourth time we passed onChange down — context, please'"
+      - "PR #228: 'why is this in the parent? the child uses it twice'"
+
+  - rank: 5
+    name: design_token_discipline
+    description: "Use design tokens for spacing, color, and typography. Magic strings are a regression."
+    evidence:
+      - "PR #176: 'spacing.4, not 16px'"
+      - "PR #245: 'we have a token for this — don't hardcode'"
+
+  - rank: 6
+    name: explicit_loading_states
+    description: "Every async UI has a Skeleton or Spinner branch. Don't ship UI that hides what it's doing."
+    evidence:
+      - "PR #189: 'what does this look like at 3G? add a Skeleton'"
+      - "PR #221: 'where's the loading state for the avatar?'"
+
+  - rank: 7
+    name: ownership_clarity
+    description: "Code in src/components/ is owned by the design system team — additions need an explicit conversation."
+    evidence:
+      - "PR #198: 'this looks like a product component — should it live here?'"
+      - "PR #240: 'this is a one-off — keep it close to the consumer'"
+
+red_flags:
+  - flag: missing_a11y_story
+    severity: blocking
+    trigger: "Component exported without a documented keyboard interaction"
+    example: "PR #214: 'no Storybook story for keyboard nav — this can't merge'"
+
+  - flag: prop_drilling_over_three_levels
+    severity: blocking
+    trigger: "Same prop passed through ≥ 3 components without transformation"
+    example: "PR #207: 'this is the fourth time we passed onChange down — context, please'"
+
+  - flag: untested_loading_state
+    severity: change_requested
+    trigger: "Async UI without an explicit Skeleton or Spinner branch"
+    example: "PR #189: 'what does this look like at 3G? add a Skeleton'"
+
+  - flag: magic_string_for_design_token
+    severity: change_requested
+    trigger: "Hex code or px value where a token exists"
+    example: "PR #176: 'spacing.4, not 16px'"
+
+  - flag: fix_later_comment
+    severity: blocking
+    trigger: "// TODO or // FIXME with no ticket reference"
+    example: "PR #168: 'either link a ticket or fix it now'"
+
+  - flag: hoc_used_for_composition
+    severity: change_requested
+    trigger: "withFoo() pattern where slots or hooks would work"
+    example: "PR #198: 'this is the second HOC in this PR — can it be a hook?'"
+
+  - flag: orphaned_component_in_design_system
+    severity: soft_block
+    trigger: "New component in src/components/ with one consumer"
+    example: "PR #240: 'this is a one-off — keep it close to the consumer'"
+
+  - flag: accessibility_regression_in_unrelated_diff
+    severity: blocking
+    trigger: "PR refactors X but breaks keyboard nav in Y"
+    example: "PR #228: 'this loses focus when the modal closes — needs a focus trap'"
+
+green_flags:
+  - flag: storybook_story_with_keyboard_demo
+    signal: "🌿 emoji + fast approval"
+    example: "PR #232: 'love this story — keyboard demo is exactly what i ask for'"
+
+  - flag: deleting_a_hoc
+    signal: "approval without inline comments"
+    example: "PR #199: '🌿 thank you'"
+
+  - flag: useId_for_aria
+    signal: "explicit thumbs-up reaction"
+    example: "PR #216: 👍 reaction on the line"
+
+  - flag: derived_state_via_useMemo
+    signal: "approval with 'this is the right shape'"
+    example: "PR #245"
+
+  - flag: deleting_dead_props
+    signal: "fast lgtm"
+    example: "PR #176"
+
+  - flag: pulling_logic_into_a_hook
+    signal: "🌿 emoji + 'now this is reusable'"
+    example: "PR #232"
+
+review_vocabulary:
+  blocking_phrases:
+    - phrase: "what's the a11y story here?"
+      meaning: "Hard block until you provide one. Polite phrasing — same severity as a refusal."
+      example: "PR #214"
+    - phrase: "let's pause and discuss"
+      meaning: "Don't merge — needs an architectural conversation, not a PR comment thread."
+      example: "PR #207"
+    - phrase: "i'd be careful here"
+      meaning: "Soft block. She expects you to convince her, not negotiate."
+      example: "PR #189"
+
+  soft_blocking_phrases:
+    - phrase: "have we considered..."
+      meaning: "She has considered it and decided this is the answer. Not optional."
+      example: "PR #198"
+    - phrase: "could this be smaller?"
+      meaning: "Reduce the surface area before merging."
+      example: "PR #245"
+    - phrase: "is this a hook or a util?"
+      meaning: "Classify it correctly before merging — naming alone has stopped PRs."
+      example: "PR #198"
+
+  approval_phrases:
+    - phrase: "🌿"
+      meaning: "Genuine praise — typically for composable refactors. Used sparingly."
+      example: "PR #199, PR #232"
+    - phrase: "ship it"
+      meaning: "Clean approval, no nits."
+      example: "PR #176"
+    - phrase: "lgtm"
+      meaning: "Approved. Anything inline is take-or-leave."
+      example: "PR #189"
+
+  neutral_phrases:
+    - phrase: "fwiw..."
+      meaning: "Non-blocking opinion — take or leave."
+      example: "PR #221"
+    - phrase: "i'm not sure why this is here"
+      meaning: "Explain the connection or remove it. Could escalate to a soft block."
+      example: "PR #228"
+
+domain_opinions:
+  - topic: state_management
+    stance: "Local state in components. Context for cross-cutting concerns. Redux only when state genuinely shared across unrelated trees."
+    evidence: ["PR #207", "PR #228"]
+
+  - topic: component_api_design
+    stance: "Compound components > prop explosions. Slots > render-props for layout."
+    evidence: ["PR #221", "PR #198"]
+
+  - topic: data_fetching
+    stance: "RTK Query or react-query — never bare fetch in components."
+    evidence: ["PR #189"]
+
+  - topic: testing_strategy
+    stance: "RTL for behavior, Storybook for surface contracts. No enzyme."
+    evidence: ["PR #176", "PR #214"]
+
+  - topic: typescript_strictness
+    stance: "Public component props are exact and exhaustive. No `any`, no implicit-any escape hatches."
+    evidence: ["PR #232", "PR #240"]
+
+  - topic: design_system_boundaries
+    stance: "src/components/ is owned by DS team. Product-specific components live near their consumers."
+    evidence: ["PR #198", "PR #240"]
+
+  - topic: accessibility_as_design_constraint
+    stance: "A11y is a design problem, not a QA pass. Components ship with keyboard semantics or they don't ship."
+    evidence: ["PR #214", "PR #228", "PR #240"]
+
+  - topic: code_deletion
+    stance: "Deleting code is the highest-leverage PR. Always approves quickly."
+    evidence: ["PR #176", "PR #199"]
+
+gotchas:
+  - issue: "🌿 emoji is genuine praise"
+    detail: "Used sparingly and only for composable refactors. 👍 alone means 'fine.'"
+  - issue: "Approves PRs while leaving blocking-phrase comments"
+    detail: "Assumes you'll address her comments in a follow-up. Track them yourself; she will."
+  - issue: "Rarely comments on TypeScript syntax — but when she does, it sticks"
+    detail: "Once she's flagged a style, she enforces it in every subsequent PR you open."
+  - issue: "Accessibility regressions in unrelated parts of the diff halt the PR"
+    detail: "Even if the diff was 'just' a refactor. Run a11y checks before pushing."
+  - issue: "Naming alone can be a sole blocker"
+    detail: "'is this a hook or a util?' has stopped PRs that were otherwise approved."
+  - issue: "Prefers PRs touching only one of: components/, hooks/, or lib/api/"
+    detail: "Mixing them gets 'split this please.'"
+  - issue: "Treats Storybook as the source of truth for component contracts"
+    detail: "If the implementation diverges from the story, the story wins."
+  - issue: "'have we considered X?' means X is the answer"
+    detail: "Not a question — a directive in question form."
+  - issue: "Will close PRs that overlap with her in-flight work"
+    detail: "If you're touching DS internals, ping her before opening the PR."
+  - issue: "Heart emoji on a single inline comment ≠ approval of the whole PR"
+    detail: "She might love one line and block the next."
+
+maintenance:
+  refresh_after:
+    - "20+ new PRs reviewed by the modeled person"
+    - "Monthly cadence — whichever comes first"
+  refresh_with: "/mental-model:synthetic-frontend-reviewer:self-improve"
+  drift_signals:
+    - "Approval rate or comment density changes by > 30%"
+    - "New ownership area appears (3+ inline comments in a directory not in ownership_map)"
+    - "Vocabulary shift — phrases not in review_vocabulary appear repeatedly"

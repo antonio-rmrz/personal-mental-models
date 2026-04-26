@@ -1,0 +1,19 @@
+{
+  "name": "personal-mental-models",
+  "version": "0.1.0",
+  "description": "Generate an agentic representation of how you (or any reviewer) think — your review style, ranked values, ownership map, vocabulary, and red/green flags, captured as a Claude Code mental model. Bring your perspective to any codebase.",
+  "author": {
+    "name": "Antonio Ramirez",
+    "url": "https://github.com/antonio-rmrz"
+  },
+  "repository": "https://github.com/antonio-rmrz/personal-mental-models",
+  "license": "MIT",
+  "keywords": [
+    "mental-model",
+    "review",
+    "persona",
+    "claude-code",
+    "agentic",
+    "reviewer"
+  ]
+}
