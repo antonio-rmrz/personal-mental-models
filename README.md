@@ -1,47 +1,20 @@
 # Personal Mental Models
 
-> An agentic representation of how *you* think. Bring your own perspective — review style, ranked values, ownership map, vocabulary — to any codebase you touch with Claude Code.
+> A structured snapshot of how *you* review code — your values, ownership map, vocabulary, red/green flags. Generate it once. Load it into whatever AI tool you use.
 
-When agents review or build code on your behalf, they default to generic LLM norms. This plugin replaces that default with **you** — a structured snapshot of how you actually review code, derived from your own PR review history.
+When agents review or build on your behalf, they default to generic LLM norms — a flattened consensus of "how the internet reviews code." That's wrong for the moments that matter. Your agent should bring **you**, not the median GitHub reviewer.
 
----
+This repo gives you:
 
-## 60 seconds to your own model
-
-Install the plugin once:
-
-```
-/plugin marketplace add antonio-rmrz/personal-mental-models
-/plugin install personal-mental-models
-```
-
-Generate your model:
-
-```
-/create-personal-mental-model <your-github-handle> <a-repo-where-you-review-prs>
-```
-
-That's it. Claude reads your last 6 months of PR reviews on the target repo and writes a working `expertise.yaml` plus three sibling slash commands to `.claude/commands/mental-model/<your-handle>/`. Open the YAML. That's you, structured.
-
-> 💡 **Best first run:** try it on yourself, against a repo where you've left at least 30 PR reviews. The output is more interesting when the data includes you.
+- 🧠 **The format** — eight reviewer-native YAML sections (`values`, `ownership_map`, `review_vocabulary`, `red_flags`, `gotchas`, …)
+- ⚙️ **Multiple ways to generate one** — Claude Code plugin, copy-pasteable prompt pack, more on the way
+- 🌐 **Cross-tool guidance** — load the same YAML into Claude Code, Cursor, Copilot, Continue, ChatGPT, JetBrains AI
 
 ---
 
-## What you get
+## What's in the model
 
-After running `/create-personal-mental-model jane octocat/spoon-knife`, you'll have:
-
-```
-.claude/commands/mental-model/jane/
-├── expertise.yaml          ← the model — 8 sections, ~150–300 lines
-├── question.md             ← /mental-model:jane:question — read-only Q&A
-├── plan.md                 ← /mental-model:jane:plan — analyze a task through her lens
-├── self-improve.md         ← /mental-model:jane:self-improve — refresh from new PRs
-└── evals/
-    └── evals.json          ← 3 scenarios for the question command
-```
-
-The eight sections of `expertise.yaml`:
+The artifact is a single `expertise.yaml` file. Eight sections:
 
 | Section | What it captures |
 |---|---|
@@ -54,7 +27,57 @@ The eight sections of `expertise.yaml`:
 | `domain_opinions` | strong architectural stances |
 | `gotchas` | non-obvious quirks of their review style |
 
-See [`examples/synthetic-frontend-reviewer.yaml`](examples/synthetic-frontend-reviewer.yaml) for a worked example.
+See [`examples/synthetic-frontend-reviewer.yaml`](examples/synthetic-frontend-reviewer.yaml) for a worked example (~270 lines, fictional persona "Maya," teaches the format).
+
+---
+
+## Generate
+
+Pick whichever fits your tooling. Every path produces the same `expertise.yaml`.
+
+### 🔌 Claude Code plugin — recommended if you use Claude Code
+
+```
+/plugin marketplace add antonio-rmrz/personal-mental-models
+/plugin install personal-mental-models
+/create-personal-mental-model <your-handle> <a-repo-where-you-review>
+```
+
+Writes a finished `.claude/commands/mental-model/<you>/` directory with `expertise.yaml` plus three sibling slash commands (`question`, `plan`, `self-improve`).
+
+### 📋 Prompt pack — works in any chat AI
+
+Open [`prompts/personal-mental-model.md`](prompts/personal-mental-model.md). It walks you through:
+
+1. Running a small shell script to fetch your PR review history (`gh api`, ~30 seconds)
+2. Pasting the resulting `reviews.json` plus the synthesis prompt into ChatGPT, Claude.ai, Cursor chat, Copilot Chat, or anywhere else with a chat box
+
+Output: the same `expertise.yaml` the plugin would generate. No install, no editor required.
+
+### 🛠️ CLI — coming soon
+
+`pipx install personal-mental-models` — bring-your-own-LLM-key (Anthropic / OpenAI / local Ollama). Same prompt, same output, no editor required. v0.2.
+
+### ⚙️ GitHub Action — coming soon
+
+Drop a workflow into your repo to refresh your model on a monthly cron and commit the YAML alongside your code. Best for teams who want models to live next to source. v0.3.
+
+---
+
+## Use it anywhere
+
+Once you have an `expertise.yaml`, here's how to load it into the tool you actually use:
+
+| Tool | How to load it |
+|---|---|
+| **Claude Code** | drop the file in `.claude/commands/mental-model/<you>/` (the plugin does this for you) |
+| **Cursor** | save as `.cursor/rules/<you>.md` with a one-line wrapper, or paste into `.cursorrules` |
+| **GitHub Copilot** | summarize into `.github/copilot-instructions.md` (Copilot's context handling is shallower; YAML structure may need flattening into prose) |
+| **Continue.dev** | reference from `.continue/config.yaml` as a custom context source |
+| **ChatGPT / Claude.ai web** | upload as a project file, or paste into custom instructions |
+| **JetBrains AI Assistant** | paste into workspace custom instructions |
+
+The pattern is the same everywhere: get the YAML into the model's context window, then ask questions or request reviews against it.
 
 ---
 
@@ -124,29 +147,18 @@ The data this tool reads (PR reviews on public repos) is already public. But syn
 
 ---
 
-## How it works
-
-`/create-personal-mental-model` does five things:
-
-1. Calls `gh api search/issues` to find every PR in the target repo where the handle has authored a review.
-2. Pulls every review, inline comment, and issue comment by that user across those PRs (verbatim, not paraphrased).
-3. Clusters the comments into the eight reviewer-native sections, with PR-cited evidence quotes.
-4. Writes the directory: `expertise.yaml` plus three sibling slash commands under `mental-model/<slug>/`.
-5. Prints next steps — try `/mental-model:<slug>:question`, run `self-improve` after another month of reviews, share with your team.
-
----
-
 ## Requirements
 
-- Claude Code with plugin support
 - `gh` CLI authenticated against an account that can read the target repo (private repos work too)
 - The reviewer should have ≥ 30 PR reviews in the target repo — fewer than that and the patterns are too thin to generalize
+- For the plugin path: Claude Code with plugin support
+- For the prompt-pack path: any chat AI you already use
 
 ---
 
 ## Status
 
-v0.1 — generates one kind of personal mental model (reviewer). The `personal-mental-models` umbrella is set up to host more flavors over time (style guides, decision archives, "what would $person say" models). PRs and ideas welcome.
+**v0.1** — generates one kind of personal mental model (reviewer). Two delivery channels live (Claude Code plugin + prompt pack), CLI and GitHub Action on the roadmap. PRs and ideas welcome.
 
 ---
 
