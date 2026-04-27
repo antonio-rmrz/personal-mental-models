@@ -58,6 +58,54 @@ See [`examples/synthetic-frontend-reviewer.yaml`](examples/synthetic-frontend-re
 
 ---
 
+## Try it on yourself
+
+The fastest way to feel whether your model actually captures you is to interrogate it. Each prompt below is a small validation test — if the answer doesn't ring true, your evidence window was too narrow and you should re-run with more `months_back`.
+
+In Claude Code:
+
+```
+/mental-model:<your-handle>:question  <the prompt>
+```
+
+In any other AI tool: drop your `expertise.yaml` into context and ask the same question directly.
+
+### 🪞 Sanity check
+
+> *"what does my model say my top 3 values are? cite the PR evidence for each."*
+
+If you don't recognize the values listed back at you, the data is too thin — re-run with a wider PR window or a more review-heavy repo.
+
+### 🔮 Surprise me
+
+> *"what's one pattern in my reviews i probably don't realize i do?"*
+
+This pulls from the `gotchas` section — non-obvious quirks that even careful self-reflection misses. If the answer is generic ("you care about code quality"), the model didn't capture anything distinctive.
+
+### ⚖️ Predict the verdict
+
+> *"i'm about to open a PR that bundles two unrelated bug fixes, has no tests, and renames a public function. predict my verdict and tell me which sections of my model trigger."*
+
+Compare with your gut. If your model says "lgtm" and you'd actually leave twelve inline comments, the evidence threshold is set wrong. If it correctly identifies which `red_flags` fire and in what order, the predictive power is real.
+
+### 🗝️ Decode your own voice
+
+> *"what do i actually mean when i say 'i'd be careful here'? blocking, soft block, or nit?"*
+
+The decoder-ring test. Replace the phrase with one you've actually used. A working model knows that polite phrasing doesn't soften severity — *"i'd be careful"*, *"i'd love it if"*, and *"have we considered..."* often mean **block**, not nit.
+
+### ✍️ Self-portrait in your own voice
+
+> *"describe me as a reviewer in one paragraph, in my voice."*
+
+Read the answer out loud. If it sounds like you — your specific phrasing, your actual emphases — the model preserved voice. If it sounds like a generic "thoughtful senior engineer," the prompt sterilized the data and you should re-run.
+
+---
+
+> 💬 If one of these gives a great answer, screenshot it and share. It's the most efficient demo this idea has.
+
+---
+
 ## Why "personal" mental models
 
 Codebase mental models capture file paths and patterns — *facts about the project*. They make agents efficient at navigating code.
